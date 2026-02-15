@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ito muna pang bawi ko for valentines</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  height:100vh;
+  background: radial-gradient(circle at center, #3b0f1f, #120007);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  font-family: Georgia, serif;
+  color:#ffd6e8;
+  position:relative;
+}
+
+/* Soft glow background */
+body::before {
+  content:"";
+  position:absolute;
+  inset:-20%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255,120,180,0.35),
+    rgba(255,120,180,0.15),
+    transparent 65%
+  );
+  animation:smoothGlow 10s ease-in-out infinite;
+  z-index:-1;
+  filter:blur(60px);
+}
+
+/* Hidden main container */
+.container {
+  text-align:center;
+  padding:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 1.5s ease;
+}
+
+.bouquet {
+  width:90vw;
+  max-width:420px;
+  opacity:0;
+  transform:scale(0.9);
+  animation:fadeIn 3s ease forwards, heartbeat 4s ease-in-out infinite;
+  cursor:pointer;
+  filter:drop-shadow(0 0 20px rgba(255,120,180,0.6));
+}
+
+@keyframes fadeIn { to { opacity:1; transform:scale(1);} }
+@keyframes heartbeat { 50% { transform:scale(1.03);} }
+
+.bloom {
+  filter:drop-shadow(0 0 30px rgba(255,150,200,0.9));
+}
+
+.message {
+  margin-top:40px;
+  font-size:19px;
+  max-width:90vw;
+  line-height:1.6;
+  min-height:90px;
+  white-space:pre-line;
+}
+
+/* Floating hearts */
+.hearts span {
+  position:absolute;
+  top:-10%;
+  animation:fall linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform:translateY(110vh) rotate(360deg);
+    opacity:0;
+  }
+}
+
+@keyframes smoothGlow {
+  0% { opacity:0.4; transform:scale(1);}
+  50% { opacity:0.85; transform:scale(1.08);}
+  100% { opacity:0.4; transform:scale(1);}
+}
+
+/* Ready Overlay */
+#readyOverlay {
+  position:fixed;
+  inset:0;
+  background:rgba(18,0,7,0.95);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+  font-size:2rem;
+  text-align:center;
+  transition:opacity 1s ease;
+}
+
+#readyOverlay button {
+  background:#ff78b4;
+  color:#120007;
+  border:none;
+  padding:10px 25px;
+  margin:10px;
+  font-size:1.2rem;
+  border-radius:10px;
+  cursor:pointer;
+  transition:transform 0.3s ease;
+}
+
+#readyOverlay button:hover {
+  transform:scale(1.1);
+}
+</style>
+</head>
+<body>
+
+<div id="readyOverlay">
+  <p>Are you ready?</p>
+  <div>
+    <button id="yesBtn">Yes</button>
+    <button id="noBtn">No</button>
+  </div>
+</div>
+
+<div class="hearts"></div>
+
+<div class="container">
+  <img src="bouquet.png" class="bouquet" id="bouquet">
+  <p class="message" id="message"></p>
+</div>
+
+<audio id="bgMusic" src="cherrywine.mp3" loop></audio>
+
+<script>
+const music = document.getElementById("bgMusic");
+const bouquet = document.getElementById("bouquet");
+const message = document.getElementById("message");
+const readyOverlay = document.getElementById("readyOverlay");
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+const hearts = document.querySelector(".hearts");
+
+let started = false;
+let heartInterval = null;
+
+/* Move NO button randomly */
+function getRandomPosition() {
+  const padding = 50;
+  const x = Math.random() * (window.innerWidth - padding * 2) + padding;
+  const y = Math.random() * (window.innerHeight - padding * 2) + padding;
+  return { x, y };
+}
+
+noBtn.addEventListener("click", () => {
+  const pos = getRandomPosition();
+  noBtn.style.position = "absolute";
+  noBtn.style.left = pos.x + "px";
+  noBtn.style.top = pos.y + "px";
+});
+
+/* YES starts everything */
+yesBtn.addEventListener("click", () => {
+  readyOverlay.style.opacity = 0;
+  setTimeout(() => {
+    readyOverlay.style.display = "none";
+    startExperience();
+  }, 1000);
+});
+
+function startExperience() {
+  if (started) return;
+  started = true;
+
+  const container = document.querySelector(".container");
+  container.style.opacity = 1;
+  container.style.pointerEvents = "auto";
+
+  music.volume = 0;
+  music.play().then(() => {
+    let fadeIn = setInterval(() => {
+      if (music.volume < 0.9) {
+        music.volume += 0.02;
+      } else clearInterval(fadeIn);
+    }, 200);
+  }).catch(() => {});
+
+  typeLove();
+  heartInterval = setInterval(createHeart, 400);
+}
+
+const text =
+"Hi love 💐\n\n" +
+"This little surprise is just to remind you\n" +
+"how truly special you are to me.\n\n" +
+"You deserve all the beautiful things in the world 💖";
+
+
+
+let i = 0;
+function typeLove() {
+  if (i < text.length) {
+    message.textContent += text.charAt(i);
+    i++;
+    setTimeout(typeLove, 60);
+  }
+}
+
+/* Floating hearts */
+const icons = ["❤️","💖","💕","🌹"];
+function createHeart() {
+  const heart = document.createElement("span");
+  heart.textContent = icons[Math.floor(Math.random()*icons.length)];
+  heart.style.left = Math.random()*100 + "vw";
+  heart.style.animationDuration = (6 + Math.random()*6) + "s";
+  heart.style.fontSize = (14 + Math.random()*16) + "px";
+  hearts.appendChild(heart);
+  setTimeout(() => heart.remove(), 12000);
+}
+
+/* Bouquet glow click */
+bouquet.addEventListener("click", () => {
+  bouquet.classList.add("bloom");
+  setTimeout(() => bouquet.classList.remove("bloom"), 600);
+});
+</script>
+
+</body>
+</html>
